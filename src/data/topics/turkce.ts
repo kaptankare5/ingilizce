@@ -1,4 +1,4 @@
-import type { ContentTopic } from "./types";
+import type { ContentTopic } from "../types";
 
 // TÜRKÇE — MEB okul öncesi erken okuryazarlık
 // Türkçe alfabe (29 harf) ve harflerin sesleri
