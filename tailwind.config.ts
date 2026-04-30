@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Nunito", "system-ui", "sans-serif"],
-        arabic: ['"Amiri"', '"Scheherazade New"', '"Noto Naskh Arabic"', "serif"],
+        sans: ["Fredoka", "Nunito", "system-ui", "sans-serif"],
+        display: ["Fredoka", "Nunito", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
