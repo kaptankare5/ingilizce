@@ -1,39 +1,38 @@
+import { Link } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
-import { NavCard } from "@/components/NavCard";
-import { GAMES } from "@/data/letters";
 
-const colorBg: Record<string, string> = {
-  green: "bg-topic-green",
-  blue: "bg-topic-blue",
-  yellow: "bg-topic-yellow",
-  orange: "bg-topic-orange",
-  pink: "bg-topic-pink",
-  purple: "bg-topic-purple",
-};
+const GAMES = [
+  { id: "memory", title: "Hafıza Kartları", emoji: "🃏", color: "from-topic-pink to-pink", desc: "Eşleşenleri bul" },
+  { id: "balloon", title: "Balon Patlatma", emoji: "🎈", color: "from-topic-blue to-info", desc: "Doğru balonu patlat" },
+  { id: "race", title: "Koşu Yarışı", emoji: "🏃", color: "from-topic-orange to-warning", desc: "Doğru kapıdan geç" },
+  { id: "fish", title: "Balık Tutma", emoji: "🎣", color: "from-topic-doga to-success", desc: "Doğru balığı yakala" },
+  { id: "quiz", title: "Hızlı Quiz", emoji: "⚡", color: "from-topic-purple to-primary", desc: "60 saniyede skor" },
+];
 
 const Games = () => {
   return (
-    <div className="min-h-screen bg-background">
-      <main className="container mx-auto max-w-xl px-4 pb-16">
-        <PageHeader />
+    <div className="min-h-screen bg-gradient-to-b from-primary-soft/40 to-background">
+      <main className="container mx-auto max-w-2xl px-4 pb-16">
+        <PageHeader title="🎮 Oyunlar" backTo="/" centered />
 
-        <header className="mb-6 animate-fade-in">
-          <h1 className="text-4xl font-extrabold text-foreground">Oyunlar</h1>
-          <p className="mt-1 text-muted-foreground">Eğlenerek Arapça öğren!</p>
-        </header>
+        <p className="text-center text-muted-foreground font-semibold mb-6">
+          Hangi oyunu oynamak istersin?
+        </p>
 
-        <nav className="space-y-3">
-          {GAMES.map((g) => (
-            <NavCard
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {GAMES.map((g, i) => (
+            <Link
               key={g.id}
-              to={`/games/${g.id}`}
-              title={g.title}
-              description={g.description}
-              iconBg={colorBg[g.color]}
-              icon={<span className="text-2xl">{g.icon}</span>}
-            />
+              to={`/oyunlar/${g.id}`}
+              className={`bg-gradient-to-br ${g.color} group flex flex-col items-center justify-center gap-2 rounded-3xl p-6 text-white shadow-card transition-bouncy hover:-translate-y-1 hover:shadow-elegant min-h-[160px] animate-bounce-in`}
+              style={{ animationDelay: `${i * 70}ms` }}
+            >
+              <div className="text-6xl transition-transform group-hover:scale-110">{g.emoji}</div>
+              <h2 className="text-xl font-extrabold text-shadow-soft">{g.title}</h2>
+              <p className="text-sm font-semibold opacity-90">{g.desc}</p>
+            </Link>
           ))}
-        </nav>
+        </div>
       </main>
     </div>
   );

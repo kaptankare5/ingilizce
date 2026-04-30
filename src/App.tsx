@@ -4,15 +4,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index.tsx";
-import Topics from "./pages/Topics.tsx";
+import Subject from "./pages/Subject.tsx";
+import Topic from "./pages/Topic.tsx";
 import Games from "./pages/Games.tsx";
-import Progress from "./pages/Progress.tsx";
-import Quiz from "./pages/Quiz.tsx";
-import MemoryGame from "./pages/games/MemoryGame.tsx";
-import CandyGame from "./pages/games/CandyGame.tsx";
-import RaceGame from "./pages/games/RaceGame.tsx";
-import BalloonGame from "./pages/games/BalloonGame.tsx";
-import TreasureGame from "./pages/games/TreasureGame.tsx";
+import Game from "./pages/Game.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -25,16 +20,10 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/topics" element={<Topics />} />
-          <Route path="/games" element={<Games />} />
-          <Route path="/progress" element={<Progress />} />
-          <Route path="/quiz/:topicId" element={<Quiz />} />
-          <Route path="/games/memory" element={<MemoryGame />} />
-          <Route path="/games/candy" element={<CandyGame />} />
-          <Route path="/games/race" element={<RaceGame />} />
-          <Route path="/games/balloon" element={<BalloonGame />} />
-          <Route path="/games/treasure" element={<TreasureGame />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/konu/:subjectId" element={<Subject />} />
+          <Route path="/konu/:subjectId/:topicId" element={<Topic />} />
+          <Route path="/oyunlar" element={<Games />} />
+          <Route path="/oyunlar/:gameId" element={<Game />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

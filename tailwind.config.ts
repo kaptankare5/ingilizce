@@ -14,8 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Nunito", "system-ui", "sans-serif"],
-        arabic: ['"Amiri"', '"Scheherazade New"', '"Noto Naskh Arabic"', "serif"],
+        sans: ["Fredoka", "Nunito", "system-ui", "sans-serif"],
+        display: ["Fredoka", "Nunito", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -75,6 +75,10 @@ export default {
           orange: "hsl(var(--topic-orange))",
           pink: "hsl(var(--topic-pink))",
           purple: "hsl(var(--topic-purple))",
+          turkce: "hsl(var(--topic-turkce))",
+          ingilizce: "hsl(var(--topic-ingilizce))",
+          matematik: "hsl(var(--topic-matematik))",
+          doga: "hsl(var(--topic-doga))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
