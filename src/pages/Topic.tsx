@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Navigate } from "react-router-dom";
 import { getSubject, getTopic } from "@/data/subjects";
 import { PageHeader } from "@/components/PageHeader";
-import { playItem, playFeedback } from "@/lib/audio";
+import { playItem } from "@/lib/audio";
 import { Volume2, ChevronLeft, ChevronRight } from "lucide-react";
 import type { SubjectId } from "@/data/types";
 import { MathPractice } from "@/components/MathPractice";
