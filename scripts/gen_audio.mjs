@@ -25,18 +25,34 @@ if (!API_KEY) {
 }
 
 // Sesler:
-// TR: Türkçeye uyumlu doğal ses (Sarah - cgSgspJ2msm6clMCkdW9 - Türkçe söyleyebiliyor)
-// EN: İngiliz aksanı (Charlie - IKne3meq5aSn9XLyUdCD veya George - JBFqnCBsd6RMkjVDRZzb)
-const VOICE_TR = "EXAVITQu4vr4xnSDxMaL"; // Sarah - multilingual
+// TR: İstanbul Türkçesi erkek ses (Liam - TX3LPaxmHKxFdv7VOQHJ - multilingual v2 ile temiz TR telaffuz)
+// EN: İngiliz aksanı erkek (George - JBFqnCBsd6RMkjVDRZzb - British male)
+const VOICE_TR = "TX3LPaxmHKxFdv7VOQHJ"; // Liam - male, multilingual
 const VOICE_EN = "JBFqnCBsd6RMkjVDRZzb"; // George - British male, clear
 
 const MODEL = "eleven_multilingual_v2";
+
+// Ses ayarları dile göre
+const VOICE_SETTINGS_TR = {
+  stability: 0.6,
+  similarity_boost: 0.8,
+  style: 0.25,
+  use_speaker_boost: true,
+  speed: 0.9,
+};
+const VOICE_SETTINGS_EN = {
+  stability: 0.55,
+  similarity_boost: 0.78,
+  style: 0.4,
+  use_speaker_boost: true,
+  speed: 0.92,
+};
 
 function hash(text) {
   return createHash("sha1").update(text).digest("hex").slice(0, 16);
 }
 
-async function tts(text, voiceId, outPath) {
+async function tts(text, voiceId, outPath, lang) {
   const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`;
   const res = await fetch(url, {
     method: "POST",
@@ -47,13 +63,7 @@ async function tts(text, voiceId, outPath) {
     body: JSON.stringify({
       text,
       model_id: MODEL,
-      voice_settings: {
-        stability: 0.55,
-        similarity_boost: 0.78,
-        style: 0.4,
-        use_speaker_boost: true,
-        speed: 0.92,
-      },
+      voice_settings: lang === "tr" ? VOICE_SETTINGS_TR : VOICE_SETTINGS_EN,
     }),
   });
   if (!res.ok) {
@@ -151,7 +161,7 @@ async function main() {
       }
       try {
         process.stdout.write(`[${lang}] ${text}... `);
-        await tts(text, voice, out);
+        await tts(text, voice, out, lang);
         made++;
         console.log("ok");
       } catch (e) {
