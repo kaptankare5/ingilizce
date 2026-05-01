@@ -25,12 +25,28 @@ if (!API_KEY) {
 }
 
 // Sesler:
-// TR: Türkçeye uyumlu doğal ses (Sarah - cgSgspJ2msm6clMCkdW9 - Türkçe söyleyebiliyor)
-// EN: İngiliz aksanı (Charlie - IKne3meq5aSn9XLyUdCD veya George - JBFqnCBsd6RMkjVDRZzb)
-const VOICE_TR = "EXAVITQu4vr4xnSDxMaL"; // Sarah - multilingual
+// TR: İstanbul Türkçesi erkek ses (Liam - TX3LPaxmHKxFdv7VOQHJ - multilingual v2 ile temiz TR telaffuz)
+// EN: İngiliz aksanı erkek (George - JBFqnCBsd6RMkjVDRZzb - British male)
+const VOICE_TR = "TX3LPaxmHKxFdv7VOQHJ"; // Liam - male, multilingual
 const VOICE_EN = "JBFqnCBsd6RMkjVDRZzb"; // George - British male, clear
 
 const MODEL = "eleven_multilingual_v2";
+
+// Ses ayarları dile göre
+const VOICE_SETTINGS_TR = {
+  stability: 0.6,
+  similarity_boost: 0.8,
+  style: 0.25,
+  use_speaker_boost: true,
+  speed: 0.9,
+};
+const VOICE_SETTINGS_EN = {
+  stability: 0.55,
+  similarity_boost: 0.78,
+  style: 0.4,
+  use_speaker_boost: true,
+  speed: 0.92,
+};
 
 function hash(text) {
   return createHash("sha1").update(text).digest("hex").slice(0, 16);
