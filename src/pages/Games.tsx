@@ -4,9 +4,9 @@ import { PageHeader } from "@/components/PageHeader";
 const GAMES = [
   { id: "memory", title: "Hafıza Kartları", emoji: "🃏", color: "from-topic-pink to-pink", desc: "Eşleşenleri bul" },
   { id: "balloon", title: "Balon Patlatma", emoji: "🎈", color: "from-topic-blue to-info", desc: "Doğru balonu patlat" },
-  { id: "race", title: "Koşu Yarışı", emoji: "🏃", color: "from-topic-orange to-warning", desc: "Doğru kapıdan geç" },
-  { id: "fish", title: "Balık Tutma", emoji: "🎣", color: "from-topic-doga to-success", desc: "Doğru balığı yakala" },
-  { id: "quiz", title: "Hızlı Quiz", emoji: "⚡", color: "from-topic-purple to-primary", desc: "60 saniyede skor" },
+  { id: "treasure", title: "Hazine Sandığı", emoji: "🎁", color: "from-topic-purple to-primary", desc: "Doğru sandığa koy" },
+  { id: "runner", title: "Koşu Oyunu", emoji: "🏃", color: "from-topic-orange to-warning", desc: "Doğru kapıdan geç" },
+  { id: "quiz", title: "Hızlı Quiz", emoji: "⚡", color: "from-topic-doga to-success", desc: "60 saniyede skor" },
 ];
 
 const Games = () => {
