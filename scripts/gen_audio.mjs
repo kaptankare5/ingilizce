@@ -161,7 +161,7 @@ async function main() {
       }
       try {
         process.stdout.write(`[${lang}] ${text}... `);
-        await tts(text, voice, out);
+        await tts(text, voice, out, lang);
         made++;
         console.log("ok");
       } catch (e) {
