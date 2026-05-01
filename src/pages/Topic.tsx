@@ -3,7 +3,7 @@ import { useParams, Navigate } from "react-router-dom";
 import { getSubject, getTopic } from "@/data/subjects";
 import { PageHeader } from "@/components/PageHeader";
 import { playItem, playFeedback } from "@/lib/audio";
-import { Volume2, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
+import { Volume2, ChevronLeft, ChevronRight } from "lucide-react";
 import type { ContentItem, SubjectId } from "@/data/types";
 import { MathPractice } from "@/components/MathPractice";
 import {
