@@ -52,7 +52,7 @@ function hash(text) {
   return createHash("sha1").update(text).digest("hex").slice(0, 16);
 }
 
-async function tts(text, voiceId, outPath) {
+async function tts(text, voiceId, outPath, lang) {
   const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`;
   const res = await fetch(url, {
     method: "POST",
@@ -63,13 +63,7 @@ async function tts(text, voiceId, outPath) {
     body: JSON.stringify({
       text,
       model_id: MODEL,
-      voice_settings: {
-        stability: 0.55,
-        similarity_boost: 0.78,
-        style: 0.4,
-        use_speaker_boost: true,
-        speed: 0.92,
-      },
+      voice_settings: lang === "tr" ? VOICE_SETTINGS_TR : VOICE_SETTINGS_EN,
     }),
   });
   if (!res.ok) {
