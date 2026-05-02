@@ -10,12 +10,15 @@ export function shuffle<T>(a: T[]): T[] {
   return r;
 }
 
-// Görsel-olarak oyunda kullanılabilecek itemlar (kısa label + emoji)
+// Görsel-olarak oyunda kullanılabilecek itemlar (emojili, harf/hece/alfabe değil)
 export function gamePool(): ContentItem[] {
   return flattenItems().filter(
     (it) =>
-      it.emoji &&
-      it.label.length <= 12 &&
+      !!it.emoji &&
+      !it.id.startsWith("harf-") &&
+      !it.id.startsWith("ilkses-") &&
+      !it.id.startsWith("hece-") &&
+      !it.id.startsWith("en-letter-") &&
       !it.id.startsWith("top-") &&
       !it.id.startsWith("cik-") &&
       !it.id.startsWith("karsi-")
