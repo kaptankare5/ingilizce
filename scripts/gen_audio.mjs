@@ -34,11 +34,11 @@ const MODEL = "eleven_multilingual_v2";
 
 // Ses ayarları dile göre
 const VOICE_SETTINGS_TR = {
-  stability: 0.6,
-  similarity_boost: 0.8,
-  style: 0.25,
+  stability: 0.75,
+  similarity_boost: 0.85,
+  style: 0.0,
   use_speaker_boost: true,
-  speed: 0.9,
+  speed: 0.88,
 };
 const VOICE_SETTINGS_EN = {
   stability: 0.55,
