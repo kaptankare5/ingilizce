@@ -25,9 +25,9 @@ if (!API_KEY) {
 }
 
 // Sesler:
-// TR: İstanbul Türkçesi erkek ses (Liam - TX3LPaxmHKxFdv7VOQHJ - multilingual v2 ile temiz TR telaffuz)
-// EN: İngiliz aksanı erkek (George - JBFqnCBsd6RMkjVDRZzb - British male)
-const VOICE_TR = "TX3LPaxmHKxFdv7VOQHJ"; // Liam - male, multilingual
+// TR: Recep Uysal - native Türk, İstanbul aksanı, erkek (Z1kEWdHZugNpInJI7rtP)
+// EN: George - British male (JBFqnCBsd6RMkjVDRZzb)
+const VOICE_TR = "Z1kEWdHZugNpInJI7rtP"; // Recep Uysal - native Turkish male, Istanbul
 const VOICE_EN = "JBFqnCBsd6RMkjVDRZzb"; // George - British male, clear
 
 const MODEL = "eleven_multilingual_v2";
