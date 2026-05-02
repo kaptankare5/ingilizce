@@ -65,7 +65,7 @@ const Topic = () => {
     const tid = pickNextLetter(NS, topic.id, itemIds);
     setQ(buildQuestion(items, tid));
     setPicked(null);
-  });
+  }, [mode, topic, itemIds, q, items]);
 
   // Hedef değişince sesi çal
   useEffect(() => {
