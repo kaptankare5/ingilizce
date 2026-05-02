@@ -98,7 +98,7 @@ const BalloonGame = () => {
 
         <div className="bg-card rounded-2xl p-3 mb-3 shadow-card border-2 border-primary/20 text-center">
           <p className="text-xs font-bold text-muted-foreground">Sesi dinle, doğru balonu patlat:</p>
-          <p className="text-3xl font-extrabold text-primary mt-1">{target?.label || "..."}</p>
+          <p className="text-5xl mt-1">{target?.emoji || "🔊"}</p>
         </div>
 
         <div className="relative bg-gradient-to-b from-info/10 to-info/30 rounded-3xl shadow-card border-4 border-info/30 overflow-hidden" style={{ height: "60vh" }}>
@@ -117,7 +117,7 @@ const BalloonGame = () => {
                 "w-16 h-20 rounded-[50%] flex items-center justify-center shadow-card",
                 COLORS[i % COLORS.length],
               )}>
-                <span className="text-2xl font-extrabold text-white text-shadow-soft">{b.item.label.slice(0, 4)}</span>
+                <span className="text-3xl">{b.item.emoji}</span>
               </div>
               <div className="w-px h-4 bg-foreground/40 mx-auto" />
             </button>

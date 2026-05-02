@@ -5,14 +5,14 @@ import { cn } from "@/lib/utils";
 import { gamePool, pickN, shuffle } from "./_shared";
 import type { ContentItem } from "@/data/types";
 
-interface Card { uid: string; item: ContentItem; flipped: boolean; matched: boolean; face: "label" | "emoji"; }
+interface Card { uid: string; item: ContentItem; flipped: boolean; matched: boolean; variant: "a" | "b"; }
 
 function buildBoard(pairs: number): Card[] {
   const items = pickN(gamePool(), pairs);
   const cards: Card[] = [];
   items.forEach((it) => {
-    cards.push({ uid: `${it.id}-l`, item: it, flipped: false, matched: false, face: "label" });
-    cards.push({ uid: `${it.id}-e`, item: it, flipped: false, matched: false, face: "emoji" });
+    cards.push({ uid: `${it.id}-a`, item: it, flipped: false, matched: false, variant: "a" });
+    cards.push({ uid: `${it.id}-b`, item: it, flipped: false, matched: false, variant: "b" });
   });
   return shuffle(cards);
 }
@@ -95,7 +95,7 @@ const MemoryGame = () => {
               )}
             >
               {(c.flipped || c.matched)
-                ? (c.face === "emoji" ? <span className="text-4xl">{c.item.emoji}</span> : <span className="text-xl text-foreground">{c.item.label}</span>)
+                ? <span className="text-5xl">{c.item.emoji}</span>
                 : <span>?</span>}
             </button>
           ))}

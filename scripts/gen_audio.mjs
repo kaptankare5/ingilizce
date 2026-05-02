@@ -25,20 +25,20 @@ if (!API_KEY) {
 }
 
 // Sesler:
-// TR: İstanbul Türkçesi erkek ses (Liam - TX3LPaxmHKxFdv7VOQHJ - multilingual v2 ile temiz TR telaffuz)
-// EN: İngiliz aksanı erkek (George - JBFqnCBsd6RMkjVDRZzb - British male)
-const VOICE_TR = "TX3LPaxmHKxFdv7VOQHJ"; // Liam - male, multilingual
+// TR: Daniel - premade, TR (tr-TR locale verified), erkek, eğitici (onwK4e9ZLuTAKqWW03F9)
+// EN: George - British male (JBFqnCBsd6RMkjVDRZzb)
+const VOICE_TR = "onwK4e9ZLuTAKqWW03F9"; // Daniel - verified Turkish locale, male, calm
 const VOICE_EN = "JBFqnCBsd6RMkjVDRZzb"; // George - British male, clear
 
 const MODEL = "eleven_multilingual_v2";
 
 // Ses ayarları dile göre
 const VOICE_SETTINGS_TR = {
-  stability: 0.6,
-  similarity_boost: 0.8,
-  style: 0.25,
+  stability: 0.75,
+  similarity_boost: 0.85,
+  style: 0.0,
   use_speaker_boost: true,
-  speed: 0.9,
+  speed: 0.88,
 };
 const VOICE_SETTINGS_EN = {
   stability: 0.55,
