@@ -25,9 +25,9 @@ if (!API_KEY) {
 }
 
 // Sesler:
-// TR: Recep Uysal - native Türk, İstanbul aksanı, erkek (Z1kEWdHZugNpInJI7rtP)
+// TR: Daniel - premade, TR (tr-TR locale verified), erkek, eğitici (onwK4e9ZLuTAKqWW03F9)
 // EN: George - British male (JBFqnCBsd6RMkjVDRZzb)
-const VOICE_TR = "Z1kEWdHZugNpInJI7rtP"; // Recep Uysal - native Turkish male, Istanbul
+const VOICE_TR = "onwK4e9ZLuTAKqWW03F9"; // Daniel - verified Turkish locale, male, calm
 const VOICE_EN = "JBFqnCBsd6RMkjVDRZzb"; // George - British male, clear
 
 const MODEL = "eleven_multilingual_v2";
