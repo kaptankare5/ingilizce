@@ -241,10 +241,7 @@ const RunnerGame = () => {
 
         <div className="bg-card rounded-2xl p-3 mb-3 shadow-card border-2 border-primary/20 text-center">
           <p className="text-xs font-bold text-muted-foreground">Doğru kapıdan geç • engelden zıpla</p>
-          <p className="text-3xl font-extrabold text-primary mt-1">
-            {round.target.emoji && <span className="mr-2">{round.target.emoji}</span>}
-            {round.target.label}
-          </p>
+          <p className="text-6xl mt-1">{round.target.emoji || "🔊"}</p>
         </div>
 
         <div
