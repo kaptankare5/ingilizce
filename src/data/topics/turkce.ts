@@ -61,9 +61,9 @@ export const turkceTopics: ContentTopic[] = [
     practiceMode: "visual",
     items: ALPHABET.map((l) => ({
       id: `ilkses-${l.letter.toLowerCase()}`,
-      label: l.example,
-      subLabel: l.letter,
-      speech: l.example,
+      label: l.letter,
+      subLabel: l.example,
+      speech: l.name,
       lang: "tr",
       emoji: l.emoji,
     })),
