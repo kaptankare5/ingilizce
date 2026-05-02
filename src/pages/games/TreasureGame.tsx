@@ -69,8 +69,7 @@ const TreasureGame = () => {
           className="w-full bg-card rounded-3xl p-6 mb-4 shadow-card border-4 border-primary/20 text-center animate-bounce-in"
           key={round.item.id}
         >
-          {round.item.emoji && <div className="text-7xl mb-2">{round.item.emoji}</div>}
-          <div className="text-4xl font-extrabold text-primary">{round.item.label}</div>
+          {round.item.emoji && <div className="text-8xl mb-2">{round.item.emoji}</div>}
           <p className="text-xs text-muted-foreground mt-2">🔊 Hangi sandığa ait?</p>
         </button>
 
