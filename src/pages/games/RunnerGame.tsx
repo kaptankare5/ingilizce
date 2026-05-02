@@ -304,10 +304,7 @@ const RunnerGame = () => {
                   transition: "opacity 0.2s",
                 }}
               >
-                {g.item.emoji && <span className="text-3xl">{g.item.emoji}</span>}
-                <span className="text-sm font-extrabold text-white text-shadow-soft">
-                  {g.item.label.slice(0, 8)}
-                </span>
+                <span className="text-4xl">{g.item.emoji}</span>
               </div>
             );
           })}
