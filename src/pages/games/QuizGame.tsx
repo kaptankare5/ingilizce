@@ -78,12 +78,11 @@ const QuizGame = () => {
                 return (
                   <button key={opt.id} onClick={() => choose(opt)}
                     className={cn(
-                      "aspect-square rounded-3xl flex flex-col items-center justify-center gap-2 shadow-card border-4 transition-bouncy bg-card border-primary/20 hover:-translate-y-1",
+                      "aspect-square rounded-3xl flex items-center justify-center shadow-card border-4 transition-bouncy bg-card border-primary/20 hover:-translate-y-1",
                       isCorrect && "bg-success border-success animate-pop",
                       isWrong && "bg-destructive border-destructive animate-shake",
                     )}>
-                    {opt.emoji && <span className="text-5xl">{opt.emoji}</span>}
-                    <span className={cn("text-lg font-extrabold", (isCorrect || isWrong) ? "text-white" : "text-foreground")}>{opt.label}</span>
+                    <span className="text-7xl">{opt.emoji}</span>
                   </button>
                 );
               })}
