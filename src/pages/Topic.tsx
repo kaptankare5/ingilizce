@@ -51,26 +51,27 @@ const Topic = () => {
   const items = topic?.items || [];
   const itemIds = useMemo(() => items.map((i) => i.id), [items]);
 
-  // Pratik modu: yeni soru üret
-  useEffect(() => {
-    if (mode !== "pratik" || !topic || items.length === 0) return;
-    if (q) return;
-    const tid = pickNextLetter(NS, topic.id, itemIds);
-    setQ(buildQuestion(items, tid));
-    setPicked(null);
-  }, [mode, topic, items, itemIds, q]);
-
-  // Hedef değişince sesi çal
-  useEffect(() => {
-    if (mode === "pratik" && q?.target) playItem(q.target);
-  }, [q?.target.id, mode]);
-
+  // Konu/mod değiştiğinde sıfırla
   useEffect(() => {
     setIdx(0);
     setQ(null);
     setPicked(null);
     setScore(0);
   }, [topicId, mode]);
+
+  // Pratik modu: yeni soru üret
+  useEffect(() => {
+    if (mode !== "pratik" || !topic || itemIds.length === 0 || q) return;
+    const tid = pickNextLetter(NS, topic.id, itemIds);
+    setQ(buildQuestion(items, tid));
+    setPicked(null);
+  });
+
+  // Hedef değişince sesi çal
+  useEffect(() => {
+    if (mode === "pratik" && q?.target) playItem(q.target);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q?.target?.id, mode]);
 
   if (!subject || !topic) return <Navigate to="/" replace />;
 
