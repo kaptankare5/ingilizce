@@ -95,7 +95,7 @@ const MemoryGame = () => {
               )}
             >
               {(c.flipped || c.matched)
-                ? (c.face === "emoji" ? <span className="text-4xl">{c.item.emoji}</span> : <span className="text-xl text-foreground">{c.item.label}</span>)
+                ? <span className="text-5xl">{c.item.emoji}</span>
                 : <span>?</span>}
             </button>
           ))}
