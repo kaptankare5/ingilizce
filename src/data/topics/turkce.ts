@@ -63,7 +63,7 @@ export const turkceTopics: ContentTopic[] = [
       id: `ilkses-${l.letter.toLowerCase()}`,
       label: l.letter,
       subLabel: l.example,
-      speech: l.name,
+      speech: l.example,
       lang: "tr",
       emoji: l.emoji,
     })),
