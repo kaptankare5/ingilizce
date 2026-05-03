@@ -32,20 +32,20 @@ const VOICE_EN = "JBFqnCBsd6RMkjVDRZzb"; // George - British male, clear
 
 const MODEL = "eleven_multilingual_v2";
 
-// Ses ayarları dile göre
+// Ses ayarları dile göre - daha doğal/insansı için stability düşük + speaker_boost
 const VOICE_SETTINGS_TR = {
-  stability: 0.75,
+  stability: 0.45,
   similarity_boost: 0.85,
-  style: 0.0,
+  style: 0.35,
   use_speaker_boost: true,
-  speed: 0.88,
+  speed: 0.95,
 };
 const VOICE_SETTINGS_EN = {
-  stability: 0.55,
-  similarity_boost: 0.78,
+  stability: 0.5,
+  similarity_boost: 0.8,
   style: 0.4,
   use_speaker_boost: true,
-  speed: 0.92,
+  speed: 0.95,
 };
 
 function hash(text) {
