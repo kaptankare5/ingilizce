@@ -1,171 +1,283 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { Text, Sky, Cloud } from "@react-three/drei";
+import * as THREE from "three";
 import { PageHeader } from "@/components/PageHeader";
 import { playSpeech, playFeedback } from "@/lib/audio";
 import { cn } from "@/lib/utils";
-import { gamePool, shuffle } from "./_shared";
-import type { ContentItem } from "@/data/types";
 
-interface Gate { id: string; lane: 0 | 1 | 2; y: number; item: ContentItem; passed: boolean; }
-interface Obstacle { id: string; lane: 0 | 1 | 2; y: number; passed: boolean; }
-interface Round { target: ContentItem; options: ContentItem[]; }
+// =============================================================
+// Subway-Surf-tarzı 3B koşu oyunu — sayı toplama
+// 3 şerit • zıplama • engeller (kütük) • toplanan sayılarla skor
+// =============================================================
 
-function makeRound(): Round {
-  const pool = gamePool();
-  const target = pool[Math.floor(Math.random() * pool.length)];
-  const wrongs = shuffle(pool.filter((p) => p.id !== target.id)).slice(0, 2);
-  return { target, options: shuffle([target, ...wrongs]) };
+const LANES = [-1.6, 0, 1.6] as const;
+type Lane = 0 | 1 | 2;
+
+const START_SPEED = 6; // birim/sn
+const MAX_SPEED = 14;
+const SPAWN_Z = -45;
+const DESPAWN_Z = 6;
+const PLAYER_Z = 0;
+const HIT_Z = 1.4;
+
+interface Coin { id: number; lane: Lane; z: number; value: number; collected: boolean; y: number; }
+interface Log  { id: number; lane: Lane; z: number; passed: boolean; }
+
+let _id = 0;
+const nid = () => ++_id;
+
+function Player({ lane, jumping }: { lane: Lane; jumping: boolean }) {
+  const ref = useRef<THREE.Group>(null);
+  const targetX = LANES[lane];
+  const yRef = useRef(0);
+  const tRef = useRef(0);
+
+  useFrame((_, dt) => {
+    if (!ref.current) return;
+    // Smooth lane transition
+    const cur = ref.current.position.x;
+    ref.current.position.x = cur + (targetX - cur) * Math.min(1, dt * 12);
+    // Jump arc
+    if (jumping) {
+      tRef.current += dt;
+      const T = 0.7;
+      const p = Math.min(1, tRef.current / T);
+      yRef.current = Math.sin(p * Math.PI) * 1.6;
+    } else {
+      tRef.current = 0;
+      yRef.current += (0 - yRef.current) * Math.min(1, dt * 14);
+    }
+    ref.current.position.y = yRef.current;
+    // little run bobbing
+    ref.current.rotation.z = Math.sin(performance.now() * 0.012) * 0.05;
+  });
+
+  return (
+    <group ref={ref} position={[targetX, 0, PLAYER_Z]}>
+      {/* shadow */}
+      <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[0.55, 24]} />
+        <meshBasicMaterial color="#000" transparent opacity={jumping ? 0.18 : 0.35} />
+      </mesh>
+      {/* body */}
+      <mesh position={[0, 0.7, 0]} castShadow>
+        <capsuleGeometry args={[0.32, 0.55, 6, 12]} />
+        <meshStandardMaterial color="#ff7043" />
+      </mesh>
+      {/* head */}
+      <mesh position={[0, 1.5, 0]} castShadow>
+        <sphereGeometry args={[0.32, 24, 24]} />
+        <meshStandardMaterial color="#ffd7a8" />
+      </mesh>
+      {/* hat */}
+      <mesh position={[0, 1.78, 0]}>
+        <coneGeometry args={[0.28, 0.25, 12]} />
+        <meshStandardMaterial color="#42a5f5" />
+      </mesh>
+      {/* arms (running animation via group rotation) */}
+      <mesh position={[-0.38, 0.85, 0]} rotation={[Math.sin(performance.now() * 0.012) * 0.7, 0, 0.3]}>
+        <capsuleGeometry args={[0.1, 0.4, 4, 8]} />
+        <meshStandardMaterial color="#ff7043" />
+      </mesh>
+      <mesh position={[0.38, 0.85, 0]} rotation={[-Math.sin(performance.now() * 0.012) * 0.7, 0, -0.3]}>
+        <capsuleGeometry args={[0.1, 0.4, 4, 8]} />
+        <meshStandardMaterial color="#ff7043" />
+      </mesh>
+    </group>
+  );
 }
 
-const PLAYER_Y = 80;
-const HIT_TOL = 10;
-const JUMP_MS = 700;
-// 5 yaş için yavaş başlangıç
-const START_SPEED = 0.022;
-const MAX_SPEED = 0.04;
+function CoinMesh({ value, lane, z, y }: { value: number; lane: Lane; z: number; y: number }) {
+  const ref = useRef<THREE.Group>(null);
+  useFrame((_, dt) => { if (ref.current) ref.current.rotation.y += dt * 3; });
+  return (
+    <group ref={ref} position={[LANES[lane], 1.0 + y, z]}>
+      <mesh>
+        <cylinderGeometry args={[0.45, 0.45, 0.08, 24]} />
+        <meshStandardMaterial color="#ffd54f" metalness={0.6} roughness={0.25} />
+      </mesh>
+      <Text position={[0, 0, 0.06]} fontSize={0.5} color="#7a4a00" anchorX="center" anchorY="middle">
+        {String(value)}
+      </Text>
+      <Text position={[0, 0, -0.06]} rotation={[0, Math.PI, 0]} fontSize={0.5} color="#7a4a00" anchorX="center" anchorY="middle">
+        {String(value)}
+      </Text>
+    </group>
+  );
+}
+
+function LogMesh({ lane, z }: { lane: Lane; z: number }) {
+  return (
+    <group position={[LANES[lane], 0.35, z]}>
+      <mesh rotation={[0, 0, Math.PI / 2]} castShadow>
+        <cylinderGeometry args={[0.35, 0.35, 1.4, 16]} />
+        <meshStandardMaterial color="#6d4c2a" />
+      </mesh>
+      {/* end caps */}
+      <mesh position={[-0.7, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.36, 0.36, 0.05, 16]} />
+        <meshStandardMaterial color="#3e2812" />
+      </mesh>
+      <mesh position={[0.7, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.36, 0.36, 0.05, 16]} />
+        <meshStandardMaterial color="#3e2812" />
+      </mesh>
+    </group>
+  );
+}
+
+function Ground({ speedRef }: { speedRef: React.MutableRefObject<number> }) {
+  const offsetRef = useRef(0);
+  const stripesRef = useRef<THREE.Group>(null);
+  useFrame((_, dt) => {
+    offsetRef.current = (offsetRef.current + speedRef.current * dt) % 4;
+    if (stripesRef.current) stripesRef.current.position.z = offsetRef.current;
+  });
+  return (
+    <>
+      {/* main road */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, -20]} receiveShadow>
+        <planeGeometry args={[6, 100]} />
+        <meshStandardMaterial color="#5a5a66" />
+      </mesh>
+      {/* lane lines (scrolling stripes) */}
+      <group ref={stripesRef}>
+        {Array.from({ length: 30 }).map((_, i) => (
+          <group key={i} position={[0, 0.02, -i * 4]}>
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-LANES[1] / 2 - 0.4, 0, 0]}>
+              <planeGeometry args={[0.08, 1.5]} />
+              <meshBasicMaterial color="#fff8" />
+            </mesh>
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[LANES[1] / 2 + 0.4, 0, 0]}>
+              <planeGeometry args={[0.08, 1.5]} />
+              <meshBasicMaterial color="#fff8" />
+            </mesh>
+          </group>
+        ))}
+      </group>
+      {/* grass sides */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[-7, -0.01, -20]}>
+        <planeGeometry args={[8, 100]} />
+        <meshStandardMaterial color="#5cb85c" />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[7, -0.01, -20]}>
+        <planeGeometry args={[8, 100]} />
+        <meshStandardMaterial color="#5cb85c" />
+      </mesh>
+    </>
+  );
+}
+
+function Trees({ speedRef }: { speedRef: React.MutableRefObject<number> }) {
+  const groupRef = useRef<THREE.Group>(null);
+  const trees = useMemo(() => {
+    const arr: { x: number; z: number; s: number }[] = [];
+    for (let i = 0; i < 20; i++) {
+      arr.push({ x: -5 - Math.random() * 4, z: -i * 5 - Math.random() * 3, s: 0.7 + Math.random() * 0.7 });
+      arr.push({ x: 5 + Math.random() * 4, z: -i * 5 - Math.random() * 3, s: 0.7 + Math.random() * 0.7 });
+    }
+    return arr;
+  }, []);
+  useFrame((_, dt) => {
+    if (!groupRef.current) return;
+    groupRef.current.children.forEach((c) => {
+      c.position.z += speedRef.current * dt;
+      if (c.position.z > DESPAWN_Z) c.position.z -= 100;
+    });
+  });
+  return (
+    <group ref={groupRef}>
+      {trees.map((t, i) => (
+        <group key={i} position={[t.x, 0, t.z]} scale={t.s}>
+          <mesh position={[0, 0.6, 0]}>
+            <cylinderGeometry args={[0.18, 0.22, 1.2, 8]} />
+            <meshStandardMaterial color="#6d4c2a" />
+          </mesh>
+          <mesh position={[0, 1.6, 0]}>
+            <coneGeometry args={[0.9, 1.8, 10]} />
+            <meshStandardMaterial color="#2e7d32" />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+interface SceneProps {
+  lane: Lane;
+  jumping: boolean;
+  speedRef: React.MutableRefObject<number>;
+  coins: Coin[];
+  logs: Log[];
+  onTick: (dt: number) => void;
+}
+
+function Scene({ lane, jumping, speedRef, coins, logs, onTick }: SceneProps) {
+  useFrame((_, dt) => onTick(Math.min(0.05, dt)));
+  return (
+    <>
+      <Sky sunPosition={[10, 6, -10]} turbidity={6} rayleigh={1} />
+      <ambientLight intensity={0.6} />
+      <directionalLight position={[5, 10, 2]} intensity={1.1} castShadow />
+      <Suspense fallback={null}>
+        <Cloud position={[-6, 8, -25]} speed={0.2} opacity={0.6} />
+        <Cloud position={[6, 9, -35]} speed={0.2} opacity={0.5} />
+      </Suspense>
+      <Ground speedRef={speedRef} />
+      <Trees speedRef={speedRef} />
+      <Player lane={lane} jumping={jumping} />
+      {coins.map((c) => !c.collected && <CoinMesh key={c.id} value={c.value} lane={c.lane} z={c.z} y={c.y} />)}
+      {logs.map((l) => <LogMesh key={l.id} lane={l.lane} z={l.z} />)}
+    </>
+  );
+}
 
 const RunnerGame = () => {
-  const [lane, setLane] = useState<0 | 1 | 2>(1);
-  const [round, setRound] = useState<Round>(() => makeRound());
-  const [gates, setGates] = useState<Gate[]>([]);
-  const [obstacles, setObstacles] = useState<Obstacle[]>([]);
-  const [score, setScore] = useState(0);
-  const [lives, setLives] = useState(3);
-  const [feedback, setFeedback] = useState<"good" | "bad" | null>(null);
-  const [jumping, setJumping] = useState(false);
-  const jumpEndRef = useRef<number>(0);
-  const rafRef = useRef<number | null>(null);
-  const lastTickRef = useRef<number>(0);
-  const spawnGateRef = useRef<number>(0);
-  const spawnObsRef = useRef<number>(1500);
-  const speedRef = useRef<number>(START_SPEED);
-  const laneRef = useRef(lane);
-  const roundRef = useRef(round);
-
+  const [lane, setLane] = useState<Lane>(1);
+  const laneRef = useRef<Lane>(1);
   useEffect(() => { laneRef.current = lane; }, [lane]);
-  useEffect(() => { roundRef.current = round; }, [round]);
+
+  const [jumping, setJumping] = useState(false);
+  const jumpEndRef = useRef(0);
+
+  const [score, setScore] = useState(0);
+  const [collected, setCollected] = useState(0);
+  const [lives, setLives] = useState(3);
+  const livesRef = useRef(3);
+  useEffect(() => { livesRef.current = lives; }, [lives]);
+
+  const [coins, setCoins] = useState<Coin[]>([]);
+  const [logs, setLogs] = useState<Log[]>([]);
+  const speedRef = useRef(START_SPEED);
+  const spawnCoinRef = useRef(0);
+  const spawnLogRef = useRef(2);
+  const hitCooldownRef = useRef(0);
 
   const ended = lives <= 0;
 
-  useEffect(() => {
-    playSpeech(round.target.speech, round.target.lang);
-  }, [round.target.id]);
-
   const jump = useCallback(() => {
     if (jumpEndRef.current > performance.now()) return;
-    jumpEndRef.current = performance.now() + JUMP_MS;
+    jumpEndRef.current = performance.now() + 700;
     setJumping(true);
-    setTimeout(() => setJumping(false), JUMP_MS);
+    setTimeout(() => setJumping(false), 700);
   }, []);
 
-  // Mutlak şerit ataması (ortaya gitsin)
-  const goLane = useCallback((target: 0 | 1 | 2) => {
-    setLane(target);
-  }, []);
-  const moveLane = useCallback((dir: -1 | 1) => {
-    setLane((l) => Math.max(0, Math.min(2, l + dir)) as 0 | 1 | 2);
-  }, []);
+  const goLane = useCallback((t: Lane) => setLane(t), []);
 
-  const spawnGateRow = useCallback(() => {
-    const opts = shuffle(roundRef.current.options).slice(0, 3);
-    const ts = Date.now();
-    setGates((g) => [
-      ...g,
-      ...opts.map((it, i) => ({
-        id: `g-${ts}-${i}`, lane: i as 0 | 1 | 2, y: -10, item: it, passed: false,
-      })),
-    ]);
-  }, []);
-
-  const spawnObstacle = useCallback(() => {
-    const ts = Date.now();
-    const lane = Math.floor(Math.random() * 3) as 0 | 1 | 2;
-    setObstacles((o) => [...o, { id: `o-${ts}`, lane, y: -10, passed: false }]);
-  }, []);
-
-  useEffect(() => {
-    if (ended) return;
-    const tick = (ts: number) => {
-      if (!lastTickRef.current) lastTickRef.current = ts;
-      const dt = Math.min(60, ts - lastTickRef.current);
-      lastTickRef.current = ts;
-      const sp = speedRef.current * dt;
-      const isJumping = jumpEndRef.current > performance.now();
-
-      setGates((gs) => {
-        const updated = gs.map((g) => g.passed ? g : { ...g, y: g.y + sp });
-        let hit: Gate | null = null;
-        for (const g of updated) {
-          if (!g.passed && Math.abs(g.y - PLAYER_Y) < HIT_TOL && g.lane === laneRef.current && !isJumping) {
-            g.passed = true;
-            if (!hit) hit = g;
-          }
-        }
-        if (hit) {
-          const correct = hit.item.id === roundRef.current.target.id;
-          if (correct) {
-            setScore((s) => s + 10);
-            setFeedback("good");
-            playFeedback(true);
-            speedRef.current = Math.min(MAX_SPEED, speedRef.current + 0.0015);
-            setTimeout(() => { setFeedback(null); setRound(makeRound()); }, 600);
-          } else {
-            setLives((l) => l - 1);
-            setFeedback("bad");
-            playFeedback(false);
-            setTimeout(() => setFeedback(null), 600);
-          }
-        }
-        return updated.filter((g) => g.y < 115);
-      });
-
-      setObstacles((os) => {
-        const updated = os.map((o) => o.passed ? o : { ...o, y: o.y + sp });
-        for (const o of updated) {
-          if (!o.passed && Math.abs(o.y - PLAYER_Y) < HIT_TOL && o.lane === laneRef.current) {
-            o.passed = true;
-            if (!isJumping) {
-              setLives((l) => l - 1);
-              setFeedback("bad");
-              playFeedback(false);
-              setTimeout(() => setFeedback(null), 600);
-            } else {
-              setScore((s) => s + 2);
-            }
-          }
-        }
-        return updated.filter((o) => o.y < 115);
-      });
-
-      spawnGateRef.current += dt;
-      if (spawnGateRef.current > 3500) {
-        spawnGateRef.current = 0;
-        spawnGateRow();
-      }
-      spawnObsRef.current += dt;
-      if (spawnObsRef.current > 2400 + Math.random() * 1500) {
-        spawnObsRef.current = 0;
-        spawnObstacle();
-      }
-
-      rafRef.current = requestAnimationFrame(tick);
-    };
-    rafRef.current = requestAnimationFrame(tick);
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      lastTickRef.current = 0;
-    };
-  }, [ended, spawnGateRow, spawnObstacle]);
-
+  // Keyboard
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft") moveLane(-1);
-      else if (e.key === "ArrowRight") moveLane(1);
+      if (ended) return;
+      if (e.key === "ArrowLeft") setLane((l) => (Math.max(0, l - 1) as Lane));
+      else if (e.key === "ArrowRight") setLane((l) => (Math.min(2, l + 1) as Lane));
       else if (e.key === "ArrowUp" || e.key === " ") { e.preventDefault(); jump(); }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [moveLane, jump]);
+  }, [jump, ended]);
 
+  // Touch swipe
   const touchStart = useRef<{ x: number; y: number } | null>(null);
   const onTouchStart = (e: React.TouchEvent) => {
     touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -175,132 +287,146 @@ const RunnerGame = () => {
     const dx = e.changedTouches[0].clientX - touchStart.current.x;
     const dy = e.changedTouches[0].clientY - touchStart.current.y;
     if (Math.abs(dx) > Math.abs(dy)) {
-      if (dx < -30) moveLane(-1);
-      else if (dx > 30) moveLane(1);
-    } else {
-      if (dy < -30) jump();
-    }
+      if (dx < -30) setLane((l) => (Math.max(0, l - 1) as Lane));
+      else if (dx > 30) setLane((l) => (Math.min(2, l + 1) as Lane));
+    } else if (dy < -30) jump();
     touchStart.current = null;
   };
 
+  const tick = useCallback((dt: number) => {
+    if (ended) return;
+    const sp = speedRef.current;
+    const isJumping = jumpEndRef.current > performance.now();
+    hitCooldownRef.current = Math.max(0, hitCooldownRef.current - dt);
+
+    // speed up gently
+    speedRef.current = Math.min(MAX_SPEED, sp + dt * 0.15);
+
+    setCoins((cs) => {
+      const next: Coin[] = [];
+      for (const c of cs) {
+        if (c.collected) continue;
+        const nz = c.z + sp * dt;
+        if (nz > DESPAWN_Z) continue;
+        // collision
+        if (!isJumping && c.lane === laneRef.current && Math.abs(nz - PLAYER_Z) < HIT_Z * 0.6) {
+          setScore((s) => s + c.value);
+          setCollected((n) => n + 1);
+          playFeedback(true);
+          continue;
+        }
+        next.push({ ...c, z: nz });
+      }
+      return next;
+    });
+
+    setLogs((ls) => {
+      const next: Log[] = [];
+      for (const l of ls) {
+        const nz = l.z + sp * dt;
+        if (nz > DESPAWN_Z) continue;
+        let passed = l.passed;
+        if (!passed && l.lane === laneRef.current && Math.abs(nz - PLAYER_Z) < HIT_Z * 0.55) {
+          passed = true;
+          if (!isJumping && hitCooldownRef.current === 0) {
+            hitCooldownRef.current = 1.0;
+            setLives((v) => Math.max(0, v - 1));
+            playFeedback(false);
+          } else if (isJumping) {
+            setScore((s) => s + 5);
+          }
+        }
+        next.push({ ...l, z: nz, passed });
+      }
+      return next;
+    });
+
+    spawnCoinRef.current -= dt;
+    if (spawnCoinRef.current <= 0) {
+      spawnCoinRef.current = 0.55 + Math.random() * 0.4;
+      // spawn a small row of coins (1-3) in a single lane (arc pattern)
+      const ln = Math.floor(Math.random() * 3) as Lane;
+      const count = 1 + Math.floor(Math.random() * 3);
+      const value = 1 + Math.floor(Math.random() * 9);
+      const newOnes: Coin[] = [];
+      for (let i = 0; i < count; i++) {
+        newOnes.push({ id: nid(), lane: ln, z: SPAWN_Z - i * 1.3, value, collected: false, y: 0 });
+      }
+      setCoins((cs) => [...cs, ...newOnes]);
+    }
+
+    spawnLogRef.current -= dt;
+    if (spawnLogRef.current <= 0) {
+      spawnLogRef.current = 1.6 + Math.random() * 1.6;
+      // avoid blocking all 3 lanes — just one
+      const ln = Math.floor(Math.random() * 3) as Lane;
+      setLogs((ls) => [...ls, { id: nid(), lane: ln, z: SPAWN_Z, passed: false }]);
+    }
+  }, [ended]);
+
   const reset = () => {
-    setScore(0); setLives(3); setLane(1); setGates([]); setObstacles([]);
-    speedRef.current = START_SPEED; setRound(makeRound()); setFeedback(null);
+    setLane(1); setScore(0); setCollected(0); setLives(3);
+    setCoins([]); setLogs([]); speedRef.current = START_SPEED;
+    spawnCoinRef.current = 0; spawnLogRef.current = 2;
   };
 
-  const scaleAt = (y: number) => 0.45 + Math.max(0, Math.min(1, y / 100)) * 0.85;
-  const lanesX = [16.66, 50, 83.33];
+  useEffect(() => { playSpeech("Sayıları topla, kütüklerden zıpla!", "tr"); }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-info/20 to-background">
       <main className="container mx-auto max-w-xl px-4 pb-16">
-        <PageHeader title="🏃 Koşu Oyunu" backTo="/oyunlar" centered onReset={reset} />
+        <PageHeader title="🏃 3B Koşu" backTo="/oyunlar" centered onReset={reset} />
 
         <div className="mb-3 grid grid-cols-3 gap-2 text-center">
-          <div className="rounded-xl bg-card p-2 shadow-soft border-2 border-success/30">
-            <div className="text-[10px] font-bold text-muted-foreground">Puan</div>
-            <div className="text-xl font-extrabold text-success">{score}</div>
+          <div className="rounded-xl bg-card p-2 shadow-soft border-2 border-warning/40">
+            <div className="text-[10px] font-bold text-muted-foreground">Skor</div>
+            <div className="text-xl font-extrabold text-warning">{score}</div>
           </div>
-          <div className="rounded-xl bg-card p-2 shadow-soft border-2 border-destructive/30">
+          <div className="rounded-xl bg-card p-2 shadow-soft border-2 border-success/40">
+            <div className="text-[10px] font-bold text-muted-foreground">Sayı</div>
+            <div className="text-xl font-extrabold text-success">🪙 {collected}</div>
+          </div>
+          <div className="rounded-xl bg-card p-2 shadow-soft border-2 border-destructive/40">
             <div className="text-[10px] font-bold text-muted-foreground">Can</div>
             <div className="text-xl font-extrabold text-destructive">{"❤️".repeat(lives) || "💀"}</div>
           </div>
-          <button
-            onClick={() => playSpeech(round.target.speech, round.target.lang)}
-            className="rounded-xl bg-primary text-primary-foreground p-2 shadow-soft border-2 border-primary font-bold text-sm"
-          >🔊 Hedef</button>
-        </div>
-
-        <div className="bg-card rounded-2xl p-3 mb-3 shadow-card border-2 border-primary/20 text-center">
-          <p className="text-xs font-bold text-muted-foreground">Doğru kapıdan geç • engelden zıpla</p>
-          <p className="text-6xl mt-1">{round.target.emoji || "🔊"}</p>
         </div>
 
         <div
           className="relative rounded-3xl shadow-card border-4 border-warning/30 overflow-hidden touch-none select-none"
-          style={{
-            height: "62vh",
-            background: "linear-gradient(to bottom, hsl(140 60% 70%) 0%, hsl(140 55% 55%) 35%, hsl(140 50% 45%) 100%)",
-          }}
+          style={{ height: "62vh", background: "linear-gradient(to bottom, #87ceeb, #b8e6c0)" }}
           onTouchStart={onTouchStart}
           onTouchEnd={onTouchEnd}
         >
-          <div
-            className="absolute inset-0"
-            style={{
-              background: "linear-gradient(to bottom, transparent 0%, hsl(30 15% 35%) 5%, hsl(30 18% 40%) 100%)",
-              clipPath: "polygon(38% 0%, 62% 0%, 100% 100%, 0% 100%)",
-            }}
-          />
-          {[0.333, 0.666].map((p, i) => (
-            <div key={i} className="absolute top-0 bottom-0"
-              style={{ left: "50%", width: 0, borderLeft: "3px dashed rgba(255,255,255,0.65)",
-                transform: `translateX(${(p - 0.5) * 100}%)`,
-                clipPath: "polygon(-50% 0%, 50% 0%, 50% 100%, -50% 100%)",
-              }}
-            />
-          ))}
-          <div className="absolute left-2 top-2 text-2xl opacity-80">🌳</div>
-          <div className="absolute right-2 top-4 text-2xl opacity-80">🌲</div>
-
-          {gates.map((g) => {
-            const sc = scaleAt(g.y);
-            const laneOffset = (lanesX[g.lane] - 50) * (0.4 + sc * 0.6);
-            return (
-              <div key={g.id}
-                className={cn("absolute rounded-2xl shadow-card border-4 border-white/70 flex items-center justify-center bg-topic-pink", g.passed && "opacity-30")}
-                style={{ left: `${50 + laneOffset}%`, top: `${g.y}%`,
-                  transform: `translate(-50%, -50%) scale(${sc})`,
-                  width: "26%", height: "16%", transition: "opacity 0.2s",
-                }}
-              >
-                <span className="text-4xl">{g.item.emoji}</span>
-              </div>
-            );
-          })}
-
-          {obstacles.map((o) => {
-            const sc = scaleAt(o.y);
-            const laneOffset = (lanesX[o.lane] - 50) * (0.4 + sc * 0.6);
-            return (
-              <div key={o.id} className="absolute flex items-center justify-center"
-                style={{ left: `${50 + laneOffset}%`, top: `${o.y}%`,
-                  transform: `translate(-50%, -50%) scale(${sc})`, width: "22%", height: "10%" }}
-              >
-                <div className="w-full h-full rounded-lg bg-gradient-to-b from-amber-700 to-amber-900 border-4 border-amber-950 shadow-card flex items-center justify-center text-2xl">🪵</div>
-              </div>
-            );
-          })}
-
-          <div className="absolute"
-            style={{ left: `${lanesX[lane]}%`, top: `${PLAYER_Y}%`,
-              transform: "translate(-50%, -50%)", transition: "left 0.22s ease-out" }}
+          <Canvas
+            shadows
+            camera={{ position: [0, 3.4, 5.5], fov: 60, near: 0.1, far: 100 }}
+            dpr={[1, 1.5]}
           >
-            <div className="absolute left-1/2 -translate-x-1/2 rounded-full bg-black/40"
-              style={{ top: "85%", width: jumping ? "30px" : "55px", height: jumping ? "8px" : "14px",
-                transition: "all 0.3s ease-out", filter: "blur(3px)" }}
+            <Scene
+              lane={lane}
+              jumping={jumping}
+              speedRef={speedRef}
+              coins={coins}
+              logs={logs}
+              onTick={tick}
             />
-            <div
-              className={cn("text-6xl drop-shadow-2xl transition-all",
-                feedback === "good" && "animate-bounce-in",
-                feedback === "bad" && "animate-shake")}
-              style={{ transform: jumping ? "translateY(-40px) scale(1.15)" : "translateY(0) scale(1)",
-                transition: "transform 0.35s cubic-bezier(.4,2,.6,1)",
-                filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.3))" }}
-            >🧒</div>
-          </div>
+          </Canvas>
 
           {ended && (
             <div className="absolute inset-0 bg-background/90 flex flex-col items-center justify-center gap-3 backdrop-blur-sm">
               <div className="text-6xl">🏁</div>
               <p className="text-2xl font-extrabold">Oyun Bitti!</p>
-              <p className="text-lg">Skor: <span className="font-extrabold text-success">{score}</span></p>
-              <button onClick={reset} className="rounded-full bg-primary px-6 py-3 font-bold text-primary-foreground shadow-card">Tekrar Oyna</button>
+              <p className="text-lg">Skor: <span className="font-extrabold text-warning">{score}</span></p>
+              <p className="text-sm">Topladığın sayı: <span className="font-extrabold text-success">{collected}</span></p>
+              <button onClick={reset} className="rounded-full bg-primary px-6 py-3 font-bold text-primary-foreground shadow-card">
+                Tekrar Oyna
+              </button>
             </div>
           )}
         </div>
 
-        {/* Mobil kontrol — mutlak şerit (ortaya da gidebilsin) */}
+        {/* Mobile controls */}
         <div className="mt-3 grid grid-cols-3 gap-2">
           <button
             onPointerDown={(e) => { e.preventDefault(); goLane(0); }}
@@ -308,28 +434,23 @@ const RunnerGame = () => {
               lane === 0 ? "bg-primary text-primary-foreground border-primary" : "bg-card border-primary/30")}
           >⬅️</button>
           <button
-            onPointerDown={(e) => { e.preventDefault(); goLane(1); jump(); }}
-            className="rounded-2xl bg-warning text-warning-foreground border-4 border-warning p-4 text-xl font-extrabold shadow-soft active:scale-95"
-          >⤴️ Orta+Zıpla</button>
+            onPointerDown={(e) => { e.preventDefault(); jump(); }}
+            className="rounded-2xl bg-success text-white border-4 border-success p-4 text-2xl font-extrabold shadow-soft active:scale-95"
+          >🦘 Zıpla</button>
           <button
             onPointerDown={(e) => { e.preventDefault(); goLane(2); }}
             className={cn("rounded-2xl border-4 p-4 text-2xl font-extrabold shadow-soft active:scale-95",
               lane === 2 ? "bg-primary text-primary-foreground border-primary" : "bg-card border-primary/30")}
           >➡️</button>
         </div>
-        <div className="mt-2 grid grid-cols-2 gap-2">
-          <button
-            onPointerDown={(e) => { e.preventDefault(); goLane(1); }}
-            className={cn("rounded-2xl border-4 p-3 text-lg font-extrabold shadow-soft active:scale-95",
-              lane === 1 ? "bg-primary text-primary-foreground border-primary" : "bg-card border-primary/30")}
-          >⬆️ Orta</button>
-          <button
-            onPointerDown={(e) => { e.preventDefault(); jump(); }}
-            className="rounded-2xl bg-success text-white border-4 border-success p-3 text-lg font-extrabold shadow-soft active:scale-95"
-          >🦘 Zıpla</button>
-        </div>
+        <button
+          onPointerDown={(e) => { e.preventDefault(); goLane(1); }}
+          className={cn("mt-2 w-full rounded-2xl border-4 p-3 text-lg font-extrabold shadow-soft active:scale-95",
+            lane === 1 ? "bg-primary text-primary-foreground border-primary" : "bg-card border-primary/30")}
+        >⬆️ Orta Şerit</button>
+
         <p className="text-xs text-center text-muted-foreground mt-2">
-          Şerit butonuna bas • zıpla ile engelden geç
+          Sayıları topla • Kütüklerden zıpla • Şeritleri değiştir
         </p>
       </main>
     </div>
