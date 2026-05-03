@@ -51,14 +51,23 @@ const Index = () => {
           ))}
         </nav>
 
-        <Link
-          to="/oyunlar"
-          className="flex items-center justify-center gap-3 rounded-3xl bg-gradient-to-r from-topic-purple to-pink p-5 text-white shadow-card transition-bouncy hover:-translate-y-1 hover:shadow-elegant"
-        >
-          <Gamepad2 className="h-7 w-7" />
-          <span className="text-xl font-extrabold text-shadow-soft">Oyunlar</span>
-          <span className="text-2xl">🎮</span>
-        </Link>
+        <div className="grid grid-cols-2 gap-3">
+          <Link
+            to="/oyunlar"
+            className="flex items-center justify-center gap-2 rounded-3xl bg-gradient-to-r from-topic-purple to-pink p-5 text-white shadow-card transition-bouncy hover:-translate-y-1 hover:shadow-elegant"
+          >
+            <Gamepad2 className="h-6 w-6" />
+            <span className="text-lg font-extrabold text-shadow-soft">Oyunlar</span>
+            <span className="text-xl">🎮</span>
+          </Link>
+          <Link
+            to="/ilerleme"
+            className="flex items-center justify-center gap-2 rounded-3xl bg-gradient-to-r from-info to-primary p-5 text-white shadow-card transition-bouncy hover:-translate-y-1 hover:shadow-elegant"
+          >
+            <span className="text-2xl">📈</span>
+            <span className="text-lg font-extrabold text-shadow-soft">İlerleme</span>
+          </Link>
+        </div>
 
         <p className="mt-8 text-center text-xs font-semibold text-muted-foreground">
           4-5 yaş • {SUBJECTS.reduce((acc, s) => acc + s.topics.length, 0)} Konu • Eğlenceli Oyunlar

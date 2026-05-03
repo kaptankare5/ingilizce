@@ -8,6 +8,7 @@ import Subject from "./pages/Subject.tsx";
 import Topic from "./pages/Topic.tsx";
 import Games from "./pages/Games.tsx";
 import Game from "./pages/Game.tsx";
+import Progress from "./pages/Progress.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/konu/:subjectId/:topicId" element={<Topic />} />
           <Route path="/oyunlar" element={<Games />} />
           <Route path="/oyunlar/:gameId" element={<Game />} />
+          <Route path="/ilerleme" element={<Progress />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
