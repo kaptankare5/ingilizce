@@ -161,25 +161,24 @@ const Match3Game = () => {
     if (selected.r === r && selected.c === c) { setSelected(null); return; }
     const dr = Math.abs(selected.r - r), dc = Math.abs(selected.c - c);
     if (dr + dc !== 1) { setSelected({ r, c }); return; }
-    // swap
+    const sel = selected;
     setBusy(true);
+    setSelected(null);
     const swapped = grid.map((row) => row.slice());
-    const a = swapped[selected.r][selected.c];
-    swapped[selected.r][selected.c] = swapped[r][c];
+    const a = swapped[sel.r][sel.c];
+    swapped[sel.r][sel.c] = swapped[r][c];
     swapped[r][c] = a;
     setGrid(swapped);
-    setSelected(null);
     await new Promise((res) => setTimeout(res, 200));
     const matches = findMatches(swapped);
     if (!matches.length) {
-      // revert
       await playFeedback(false);
-      const reverted = swapped.map((row) => row.slice());
-      const b = reverted[selected!.r]?.[selected!.c] ?? reverted[r][c];
       // swap back
-      reverted[r][c] = a;
-      const orig = grid;
-      setGrid(orig);
+      const back = swapped.map((row) => row.slice());
+      const tmp = back[sel.r][sel.c];
+      back[sel.r][sel.c] = back[r][c];
+      back[r][c] = tmp;
+      setGrid(back);
       setBusy(false);
       return;
     }
