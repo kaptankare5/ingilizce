@@ -400,8 +400,9 @@ const RunnerGame = () => {
         >
           <Canvas
             shadows
-            camera={{ position: [0, 3.4, 5.5], fov: 60, near: 0.1, far: 100 }}
+            camera={{ position: [0, 7, 4.5], fov: 55, near: 0.1, far: 100 }}
             dpr={[1, 1.5]}
+            onCreated={({ camera }) => { camera.lookAt(0, 0.6, -6); }}
           >
             <Scene
               lane={lane}
@@ -426,7 +427,7 @@ const RunnerGame = () => {
           )}
         </div>
 
-        {/* Mobile controls */}
+        {/* Mobile controls — sadece sol/sağ + zıpla */}
         <div className="mt-3 grid grid-cols-3 gap-2">
           <button
             onPointerDown={(e) => { e.preventDefault(); goLane(0); }}
@@ -443,11 +444,6 @@ const RunnerGame = () => {
               lane === 2 ? "bg-primary text-primary-foreground border-primary" : "bg-card border-primary/30")}
           >➡️</button>
         </div>
-        <button
-          onPointerDown={(e) => { e.preventDefault(); goLane(1); }}
-          className={cn("mt-2 w-full rounded-2xl border-4 p-3 text-lg font-extrabold shadow-soft active:scale-95",
-            lane === 1 ? "bg-primary text-primary-foreground border-primary" : "bg-card border-primary/30")}
-        >⬆️ Orta Şerit</button>
 
         <p className="text-xs text-center text-muted-foreground mt-2">
           Sayıları topla • Kütüklerden zıpla • Şeritleri değiştir

@@ -1,11 +1,14 @@
 import { Link } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
+import { LangToggle } from "@/components/LangToggle";
 
 const GAMES = [
   { id: "memory", title: "Hafıza Kartları", emoji: "🃏", color: "from-topic-pink to-pink", desc: "Eşleşenleri bul" },
   { id: "balloon", title: "Balon Patlatma", emoji: "🎈", color: "from-topic-blue to-info", desc: "Doğru balonu patlat" },
   { id: "treasure", title: "Hazine Sandığı", emoji: "🎁", color: "from-topic-purple to-primary", desc: "Doğru sandığa koy" },
-  { id: "runner", title: "Koşu Oyunu", emoji: "🏃", color: "from-topic-orange to-warning", desc: "Doğru kapıdan geç" },
+  { id: "runner", title: "Koşu Oyunu", emoji: "🏃", color: "from-topic-orange to-warning", desc: "Sayıları topla" },
+  { id: "sorter", title: "Kutu Boşalt", emoji: "📦", color: "from-topic-doga to-success", desc: "3 aynıyı seç, sil" },
+  { id: "match3", title: "Üçlü Eşleştir", emoji: "🍬", color: "from-topic-pink to-warning", desc: "3'lü dizip patlat" },
   { id: "quiz", title: "Hızlı Quiz", emoji: "⚡", color: "from-topic-doga to-success", desc: "60 saniyede skor" },
 ];
 
@@ -14,6 +17,10 @@ const Games = () => {
     <div className="min-h-screen bg-gradient-to-b from-primary-soft/40 to-background">
       <main className="container mx-auto max-w-2xl px-4 pb-16">
         <PageHeader title="🎮 Oyunlar" backTo="/" centered />
+
+        <div className="flex justify-center mb-4">
+          <LangToggle />
+        </div>
 
         <p className="text-center text-muted-foreground font-semibold mb-6">
           Hangi oyunu oynamak istersin?

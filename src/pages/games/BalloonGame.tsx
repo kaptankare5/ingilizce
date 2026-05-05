@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
+import { LangToggle } from "@/components/LangToggle";
 import { playItem, playFeedback } from "@/lib/audio";
 import { cn } from "@/lib/utils";
 import { Volume2 } from "lucide-react";
@@ -66,13 +67,25 @@ const BalloonGame = () => {
 
   useEffect(() => { newRound(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
 
+  useEffect(() => {
+    const h = () => { setScore(0); setMisses(0); newRound(); };
+    window.addEventListener("games-lang-change", h);
+    return () => window.removeEventListener("games-lang-change", h);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const pop = async (b: Balloon) => {
     if (b.popped || !target) return;
     setBalloons((bs) => bs.map((x) => x.uid === b.uid ? { ...x, popped: true } : x));
     const correct = b.item.id === target.id;
-    if (correct) setScore((s) => s + 1);
-    else setMisses((m) => m + 1);
-    await playFeedback(correct);
+    if (correct) {
+      setScore((s) => s + 1);
+      await playFeedback(true);
+      setTimeout(newRound, 350);
+    } else {
+      setMisses((m) => m + 1);
+      await playFeedback(false);
+    }
   };
 
   const reset = () => { setScore(0); setMisses(0); newRound(); };
@@ -81,6 +94,7 @@ const BalloonGame = () => {
     <div className="min-h-screen bg-gradient-to-b from-info/20 to-background">
       <main className="container mx-auto max-w-xl px-4 pb-16">
         <PageHeader title="🎈 Balon Patlatma" backTo="/oyunlar" centered onReset={reset} />
+        <div className="flex justify-center mb-3"><LangToggle /></div>
 
         <div className="mb-3 grid grid-cols-3 gap-2 text-center">
           <div className="rounded-xl bg-card p-2 shadow-soft border-2 border-success/30">

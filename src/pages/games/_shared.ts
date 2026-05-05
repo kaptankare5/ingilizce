@@ -1,5 +1,5 @@
 import { flattenItems } from "@/data/subjects";
-import type { ContentItem } from "@/data/types";
+import type { ContentItem, Lang } from "@/data/types";
 
 export function shuffle<T>(a: T[]): T[] {
   const r = [...a];
@@ -10,10 +10,28 @@ export function shuffle<T>(a: T[]): T[] {
   return r;
 }
 
+const LANG_KEY = "games-lang";
+
+export function getGameLang(): Lang {
+  try {
+    const v = localStorage.getItem(LANG_KEY);
+    if (v === "en" || v === "tr") return v;
+  } catch { /* ignore */ }
+  return "tr";
+}
+
+export function setGameLang(l: Lang) {
+  try { localStorage.setItem(LANG_KEY, l); } catch { /* ignore */ }
+  try { window.dispatchEvent(new Event("games-lang-change")); } catch { /* ignore */ }
+}
+
 // Görsel-olarak oyunda kullanılabilecek itemlar (emojili, harf/hece/alfabe değil)
-export function gamePool(): ContentItem[] {
+// Dil parametresi opsiyonel — verilmezse seçili dile göre filtrelenir
+export function gamePool(lang?: Lang): ContentItem[] {
+  const target = lang ?? getGameLang();
   return flattenItems().filter(
     (it) =>
+      it.lang === target &&
       !!it.emoji &&
       !it.id.startsWith("harf-") &&
       !it.id.startsWith("ilkses-") &&
