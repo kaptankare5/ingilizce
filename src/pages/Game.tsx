@@ -4,8 +4,10 @@ import MemoryGame from "./games/MemoryGame";
 import BalloonGame from "./games/BalloonGame";
 import TreasureGame from "./games/TreasureGame";
 import RunnerGame from "./games/RunnerGame";
+import SorterGame from "./games/SorterGame";
+import Match3Game from "./games/Match3Game";
 
-const GAMES = ["memory", "balloon", "treasure", "runner", "quiz"] as const;
+const GAMES = ["memory", "balloon", "treasure", "runner", "sorter", "match3", "quiz"] as const;
 
 const Game = () => {
   const { gameId } = useParams<{ gameId: string }>();
@@ -16,6 +18,8 @@ const Game = () => {
     case "balloon": return <BalloonGame />;
     case "treasure": return <TreasureGame />;
     case "runner": return <RunnerGame />;
+    case "sorter": return <SorterGame />;
+    case "match3": return <Match3Game />;
     case "quiz": return <QuizGame />;
     default: return <Navigate to="/oyunlar" replace />;
   }
