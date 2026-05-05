@@ -70,9 +70,14 @@ const BalloonGame = () => {
     if (b.popped || !target) return;
     setBalloons((bs) => bs.map((x) => x.uid === b.uid ? { ...x, popped: true } : x));
     const correct = b.item.id === target.id;
-    if (correct) setScore((s) => s + 1);
-    else setMisses((m) => m + 1);
-    await playFeedback(correct);
+    if (correct) {
+      setScore((s) => s + 1);
+      await playFeedback(true);
+      setTimeout(newRound, 350);
+    } else {
+      setMisses((m) => m + 1);
+      await playFeedback(false);
+    }
   };
 
   const reset = () => { setScore(0); setMisses(0); newRound(); };
