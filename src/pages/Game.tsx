@@ -21,6 +21,7 @@ const Game = () => {
     case "runner": return <RunnerGame />;
     case "sorter": return <SorterGame />;
     case "match3": return <Match3Game />;
+    case "triple": return <TripleMatchGame />;
     case "quiz": return <QuizGame />;
     default: return <Navigate to="/oyunlar" replace />;
   }
