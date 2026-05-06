@@ -34,19 +34,25 @@ const MemoryGame = () => {
     if (busy || c.flipped || c.matched) return;
     const updated = cards.map((x) => x.uid === c.uid ? { ...x, flipped: true } : x);
     setCards(updated);
-    playItem(c.item);
 
-    if (!first) { setFirst(c); return; }
+    if (!first) {
+      playItem(c.item);
+      setFirst(c);
+      return;
+    }
     setMoves((m) => m + 1);
     setBusy(true);
     if (first.item.id === c.item.id) {
-      // eşleşti
+      // eşleşti — kelimeyi sadece bir kez söyle, bitince geri bildirim ver
+      setCards((cs) => cs.map((x) => x.item.id === c.item.id ? { ...x, matched: true, flipped: true } : x));
+      await playItem(c.item);
+      // kelimenin çalma süresine yer aç
       setTimeout(async () => {
-        setCards((cs) => cs.map((x) => x.item.id === c.item.id ? { ...x, matched: true, flipped: true } : x));
         setFirst(null); setBusy(false);
         await playFeedback(true);
-      }, 350);
+      }, 1100);
     } else {
+      playItem(c.item);
       setTimeout(async () => {
         setCards((cs) => cs.map((x) => (x.uid === first.uid || x.uid === c.uid) ? { ...x, flipped: false } : x));
         setFirst(null); setBusy(false);
