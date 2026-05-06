@@ -141,6 +141,7 @@ const TripleMatchGame = () => {
   };
 
   const tap = (item: BoxItem) => {
+    unlockSpeech();
     if (status !== "playing") return;
     const slotIdx = tray.findIndex((s) => s === null);
     if (slotIdx === -1) return;
