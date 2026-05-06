@@ -6,8 +6,9 @@ import TreasureGame from "./games/TreasureGame";
 import RunnerGame from "./games/RunnerGame";
 import SorterGame from "./games/SorterGame";
 import Match3Game from "./games/Match3Game";
+import TripleMatchGame from "./games/TripleMatchGame";
 
-const GAMES = ["memory", "balloon", "treasure", "runner", "sorter", "match3", "quiz"] as const;
+const GAMES = ["memory", "balloon", "treasure", "runner", "sorter", "match3", "triple", "quiz"] as const;
 
 const Game = () => {
   const { gameId } = useParams<{ gameId: string }>();
