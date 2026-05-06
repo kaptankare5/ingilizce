@@ -37,18 +37,50 @@ type BoxItem = {
 let _uid = 0;
 const nid = () => ++_uid;
 
+function pickEnglishVoice(): SpeechSynthesisVoice | null {
+  if (typeof window === "undefined" || !window.speechSynthesis) return null;
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices.length) return null;
+  return (
+    voices.find(v => /en-GB/i.test(v.lang)) ||
+    voices.find(v => /^en[-_]/i.test(v.lang)) ||
+    voices.find(v => /english/i.test(v.name)) ||
+    null
+  );
+}
+
+function doSpeak(word: string) {
+  const u = new SpeechSynthesisUtterance(word);
+  u.lang = "en-GB";
+  u.rate = 0.92;
+  u.pitch = 1;
+  const v = pickEnglishVoice();
+  if (v) u.voice = v;
+  window.speechSynthesis.speak(u);
+}
+
 function speakEnglish(word: string) {
   try {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(word);
-    u.lang = "en-GB";
-    u.rate = 0.95;
-    u.pitch = 1;
-    const voices = window.speechSynthesis.getVoices();
-    const v = voices.find(v => /en-GB/i.test(v.lang)) || voices.find(v => /en[-_]/i.test(v.lang));
-    if (v) u.voice = v;
-    window.speechSynthesis.speak(u);
+    const synth = window.speechSynthesis;
+    synth.cancel();
+    // Warm-up: bazı tarayıcılarda ilk speak sessiz başlar; küçük bir gecikme ile garantile.
+    if (!pickEnglishVoice()) {
+      // Voices henüz hazır değil → yüklenince çal
+      const handler = () => {
+        synth.removeEventListener("voiceschanged", handler);
+        doSpeak(word);
+      };
+      synth.addEventListener("voiceschanged", handler);
+      // Yine de tetikleyelim ki getVoices() doldursun
+      synth.getVoices();
+      // Emniyet: 400ms sonra hâlâ konuşmadıysa default ile çal
+      setTimeout(() => {
+        if (!synth.speaking && !synth.pending) doSpeak(word);
+      }, 400);
+      return;
+    }
+    doSpeak(word);
   } catch { /* ignore */ }
 }
 
