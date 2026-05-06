@@ -115,8 +115,22 @@ const TripleMatchGame = () => {
   useEffect(() => {
     if (typeof window !== "undefined" && window.speechSynthesis) {
       window.speechSynthesis.getVoices();
+      const h = () => window.speechSynthesis.getVoices();
+      window.speechSynthesis.addEventListener?.("voiceschanged", h);
+      return () => window.speechSynthesis.removeEventListener?.("voiceschanged", h);
     }
   }, []);
+
+  const unlockedRef = useRef(false);
+  const unlockSpeech = () => {
+    if (unlockedRef.current) return;
+    try {
+      const u = new SpeechSynthesisUtterance(" ");
+      u.volume = 0; u.lang = "en-GB";
+      window.speechSynthesis.speak(u);
+      unlockedRef.current = true;
+    } catch { /* ignore */ }
+  };
 
   const reset = () => {
     setBox(buildBoard());
