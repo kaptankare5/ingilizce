@@ -9,6 +9,7 @@ const GAMES = [
   { id: "runner", title: "Koşu Oyunu", emoji: "🏃", color: "from-topic-orange to-warning", desc: "Sayıları topla" },
   { id: "sorter", title: "Kutu Boşalt", emoji: "📦", color: "from-topic-doga to-success", desc: "3 aynıyı seç, sil" },
   { id: "match3", title: "Üçlü Eşleştir", emoji: "🍬", color: "from-topic-pink to-warning", desc: "3'lü dizip patlat" },
+  { id: "triple", title: "Triple Match", emoji: "🧩", color: "from-topic-blue to-primary", desc: "Meslekleri öğren (EN)" },
   { id: "quiz", title: "Hızlı Quiz", emoji: "⚡", color: "from-topic-doga to-success", desc: "60 saniyede skor" },
 ];
 
